@@ -87,7 +87,35 @@ export default function Dashboard() {
             <option value="Cryptography">Cryptography</option>
             <option value="Web Exploitation">Web Exploitation</option>
             <option value="Reverse Engineering">Reverse Engineering</option>
-            {/* Add other specializations */}
+            <option value="Forensics">Forensics</option>
+            <option value="General Skills">General Skills</option>
+            <option value="Binary Exploitation">Binary Exploitation</option>
+            <option value="Network Security">Network Security</option>
+            <option value="Application Security">Application Security</option>
+            <option value="Cloud Security">Cloud Security</option>
+            <option value="Mobile Security">Mobile Security</option>
+            <option value="IoT Security">IoT Security</option> 
+            <option value="Blockchain Security">Blockchain Security</option>
+            <option value="Social Engineering">Social Engineering</option>
+            <option value="Malware Analysis">Malware Analysis</option>
+            <option value="Threat Intelligence">Threat Intelligence</option>
+
+            <option value="Offensive Security (Red Teaming)">Offensive Security (Red Teaming)</option>
+            <option value="Defensive Security (Blue Teaming)">Defensive Security (Blue Teaming)</option>
+
+            <option value="Digital Forensics">Digital Forensics</option>
+            <option value="Incident Response">Incident Response</option>
+            <option value="Security Operations">Security Operations</option>
+            <option value="Governance, Risk, and Compliance (GRC)">Governance, Risk, and Compliance (GRC)</option>
+            <option value="Identity and Access Management">Identity and Access Management</option>
+            <option value="Security Architecture">Security Architecture</option>
+            <option value="Hardware Security">Hardware Security</option>
+            <option value="Steganography">Steganography</option>
+            <option value="Open Source Intelligence (OSINT)">Open Source Intelligence (OSINT)</option>
+            <option value="Physical Security">Physical Security</option>
+
+            {/* values here, should also be options to profile, expanding ifyk
+            also multiselect!! */}
           </select>
 
           <select
