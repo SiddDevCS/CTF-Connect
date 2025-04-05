@@ -1,12 +1,12 @@
 'use client';
 
 import { useAuth } from '@/providers/AuthProvider';
-import { Github } from 'lucide-react';
+import { Github, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Check, X } from 'lucide-react';
-
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const DiscordIcon = () => (
   <svg
@@ -21,13 +21,15 @@ const DiscordIcon = () => (
 );
 
 export default function Register() {
-  const { signInWithProvider } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [errors, setErrors] = useState<string[]>([]);
+    const { signInWithProvider } = useAuth();
+    const router = useRouter();
+    const [formData, setFormData] = useState({
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    const [errors, setErrors] = useState<string[]>([]);
+    const [registrationStatus, setRegistrationStatus] = useState('');
 
   const passwordRequirements = [
     {
@@ -64,6 +66,60 @@ export default function Register() {
     setErrors(validatePassword(newPassword));
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegistrationStatus('');
+    
+    try {
+      // First, sign up the user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (signUpError) {
+        setRegistrationStatus(`Registration failed: ${signUpError.message}`);
+        console.error('Registration error:', signUpError);
+        return;
+      }
+
+      if (data?.user) {
+        try {
+          // Create user profile in users table
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              username: formData.email.split('@')[0],
+              specialization: [],
+              experience_level: 'Beginner',
+              created_at: new Date().toISOString()
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            setRegistrationStatus('Account created but profile setup failed. Please contact support.');
+            return;
+          }
+
+          setRegistrationStatus('Registration successful! Please check your email to verify your account.');
+          setTimeout(() => {
+            router.push('/login');
+          }, 3000);
+        } catch (profileError) {
+          console.error('Profile creation error:', profileError);
+          setRegistrationStatus('Account created but profile setup failed. Please contact support.');
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setRegistrationStatus('An unexpected error occurred. Please try again.');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -88,89 +144,105 @@ export default function Register() {
             Register
           </h2>
           
-          <div className="space-y-4 mb-6">
-            <div>
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
-              />
+          <form onSubmit={handleRegister}>
+            <div className="space-y-4 mb-6">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handlePasswordChange}
+                  className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
+                />
+                {formData.password && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-3 p-3 bg-black/40 rounded-lg border border-[#0095FF]/20"
+                  >
+                    <h3 className="text-sm font-medium text-white mb-2">Password Requirements:</h3>
+                    <div className="space-y-2">
+                      {passwordRequirements.map((req, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          {req.test(formData.password) ? (
+                            <Check className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <X className="w-4 h-4 text-red-500" />
+                          )}
+                          <span className={`text-sm ${
+                            req.test(formData.password) 
+                              ? 'text-green-500' 
+                              : 'text-gray-400'
+                          }`}>
+                            {req.text}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
+                />
+                {formData.confirmPassword && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-2 flex items-center gap-2"
+                  >
+                    {formData.password === formData.confirmPassword ? (
+                      <>
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-green-500">Passwords match</span>
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-red-500">Passwords do not match</span>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+                  {registrationStatus && (
+                    <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`p-3 rounded-lg text-sm ${
+                        registrationStatus.includes('successful')
+                        ? 'bg-green-500/20 text-green-500'
+                        : 'bg-red-500/20 text-red-500'
+                    }`}
+                    >
+                    {registrationStatus}
+                    </motion.div>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={errors.length > 0 || !formData.password || formData.password !== formData.confirmPassword}
+              >
+                Create Account
+              </button>
             </div>
-            <div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handlePasswordChange}
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
-              />
-              {formData.password && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="mt-3 p-3 bg-black/40 rounded-lg border border-[#0095FF]/20"
-                >
-                  <h3 className="text-sm font-medium text-white mb-2">Password Requirements:</h3>
-                  <div className="space-y-2">
-                    {passwordRequirements.map((req, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        {req.test(formData.password) ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <X className="w-4 h-4 text-red-500" />
-                        )}
-                        <span className={`text-sm ${
-                          req.test(formData.password) 
-                            ? 'text-green-500' 
-                            : 'text-gray-400'
-                        }`}>
-                          {req.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-            <div>
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
-              />
-              {formData.confirmPassword && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="mt-2 flex items-center gap-2"
-                >
-                  {formData.password === formData.confirmPassword ? (
-                    <>
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-green-500">Passwords match</span>
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-4 h-4 text-red-500" />
-                      <span className="text-sm text-red-500">Passwords do not match</span>
-                    </>
-                  )}
-                </motion.div>
-              )}
-            </div>
-            <button
-              className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={errors.length > 0 || !formData.password || formData.password !== formData.confirmPassword}
-            >
-              Create Account
-            </button>
-          </div>
+          </form>
 
           <p className="text-gray-400 text-sm text-center mb-6">
             Already have an account?{' '}

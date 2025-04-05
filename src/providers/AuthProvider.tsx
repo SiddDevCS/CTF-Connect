@@ -42,21 +42,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'identify email', // Add this for Discord
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
+          scopes: provider === 'github' ? 'read:user user:email' : 'identify email',
         }
       });
       
       if (error) {
         console.error('Auth error:', error);
+        return;
       }
     } catch (error) {
       console.error('Sign in error:', error);
     }
-  }
+  };
 
   const signOut = async () => {
     await supabase.auth.signOut()

@@ -4,6 +4,9 @@ import { useAuth } from '@/providers/AuthProvider';
 import { Github } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const DiscordIcon = () => (
   <svg
@@ -19,6 +22,54 @@ const DiscordIcon = () => (
 
 export default function Login() {
   const { signInWithProvider } = useAuth();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loginStatus, setLoginStatus] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoginStatus('');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        if (error.message.includes('Email not confirmed')) {
+          setLoginStatus('Please verify your email before logging in.');
+          router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+          return;
+        }
+        setLoginStatus(error.message);
+        return;
+      }
+
+      if (data?.user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!userData) {
+          router.push('/onboarding');
+        } else {
+          router.push('/dashboard');
+        }
+      }
+    } catch (error) {
+      setLoginStatus('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -28,7 +79,7 @@ export default function Login() {
       className="min-h-screen bg-dark-navy flex items-center justify-center p-4"
     >
       <div className="bg-black/20 rounded-2xl overflow-hidden w-full max-w-4xl flex border border-[#0095FF]/30">
-        {/* Left Side - Blue Section */}
+        {/* Left Side stays the same */}
         <div className="bg-[#0095FF] p-12 flex-1 flex flex-col justify-center">
           <h1 className="text-4xl font-bold text-white mb-4">
             Connect. Hack. Win.
@@ -44,25 +95,46 @@ export default function Login() {
             Login
           </h2>
           
-          <div className="space-y-4 mb-6">
-            <div>
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
-              />
+          <form onSubmit={handleLogin}>
+            <div className="space-y-4 mb-6">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
+                />
+              </div>
+
+              {loginStatus && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-3 rounded-lg text-sm bg-red-500/20 text-red-500"
+                >
+                  {loginStatus}
+                </motion.div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
             </div>
-            <div>
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
-              />
-            </div>
-            <button className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors">
-              Login
-            </button>
-          </div>
+          </form>
 
           <p className="text-gray-400 text-sm text-center mb-6">
             Don't have an account?{' '}
