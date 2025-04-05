@@ -18,7 +18,7 @@ const DiscordIcon = () => (
   </svg>
 );
 
-export default function Login() {
+export default function Register() {
   const { signInWithProvider } = useAuth();
 
   return (
@@ -27,16 +27,16 @@ export default function Login() {
         {/* Left Side - Blue Section */}
         <div className="bg-[#0095FF] p-12 flex-1 flex flex-col justify-center">
           <h1 className="text-4xl font-bold text-white mb-4">
-            Connect. Hack. Win.
+            Join the Community
           </h1>
           <p className="text-white/80 text-lg">
-            Join the community and collaborate on innovative projects.
+            Connect with fellow CTF enthusiasts and start your journey.
           </p>
         </div>
 
-        {/* Right Side - Login Section */}
+        {/* Right Side - Register Section */}
         <div className="p-12 flex-1 bg-black/40">
-          <h2 className="text-2xl font-semibold text-white mb-8">Login</h2>
+          <h2 className="text-2xl font-semibold text-white mb-8">Register</h2>
           
           <div className="space-y-4 mb-6">
             <div>
@@ -53,15 +53,22 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
               />
             </div>
+            <div>
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+              />
+            </div>
             <button className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition">
-              Login
+              Create Account
             </button>
           </div>
 
           <p className="text-gray-400 text-sm text-center mb-6">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-[#0095FF] hover:underline">
-              Register
+            Already have an account?{' '}
+            <Link href="/login" className="text-[#0095FF] hover:underline">
+              Login
             </Link>
           </p>
 
@@ -71,7 +78,7 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
             >
               <Github size={20} />
-              GitHub
+              Continue with GitHub
             </button>
             
             <button
@@ -79,7 +86,7 @@ export default function Login() {
               className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
             >
               <DiscordIcon />
-              Discord
+              Continue with Discord
             </button>
           </div>
         </div>

@@ -5,10 +5,10 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types';
 import UserCard from '@/components/UserCard';
-import { Search, Filter, LogOut } from 'lucide-react'; // Added LogOut icon
+import { Search, Filter, LogOut } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth(); // Added signOut from useAuth
+  const { user, signOut } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [connections, setConnections] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +36,6 @@ export default function Dashboard() {
 
     fetchUsers();
 
-    // Set up real-time subscription for connections
     const subscription = supabase
       .channel('connections_changes')
       .on('postgres_changes', { 
@@ -63,9 +62,17 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-dark-navy p-6">
-
-      
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 px-4 py-2 rounded-lg transition-colors"
+          >
+            <LogOut size={18} />
+            Sign Out
+          </button>
+        </div>
+
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -99,10 +106,8 @@ export default function Dashboard() {
             <option value="Social Engineering">Social Engineering</option>
             <option value="Malware Analysis">Malware Analysis</option>
             <option value="Threat Intelligence">Threat Intelligence</option>
-
             <option value="Offensive Security (Red Teaming)">Offensive Security (Red Teaming)</option>
             <option value="Defensive Security (Blue Teaming)">Defensive Security (Blue Teaming)</option>
-
             <option value="Digital Forensics">Digital Forensics</option>
             <option value="Incident Response">Incident Response</option>
             <option value="Security Operations">Security Operations</option>
@@ -113,9 +118,6 @@ export default function Dashboard() {
             <option value="Steganography">Steganography</option>
             <option value="Open Source Intelligence (OSINT)">Open Source Intelligence (OSINT)</option>
             <option value="Physical Security">Physical Security</option>
-
-            {/* values here, should also be options to profile, expanding ifyk
-            also multiselect!! */}
           </select>
 
           <select
