@@ -5,7 +5,6 @@ import { Github } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-// Custom Discord icon component
 const DiscordIcon = () => (
   <svg
     width="20"
@@ -22,7 +21,12 @@ export default function Login() {
   const { signInWithProvider } = useAuth();
 
   return (
-    <div className="min-h-screen bg-dark-navy flex items-center justify-center p-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-dark-navy flex items-center justify-center p-4"
+    >
       <div className="bg-black/20 rounded-2xl overflow-hidden w-full max-w-4xl flex border border-[#0095FF]/30">
         {/* Left Side - Blue Section */}
         <div className="bg-[#0095FF] p-12 flex-1 flex flex-col justify-center">
@@ -36,24 +40,26 @@ export default function Login() {
 
         {/* Right Side - Login Section */}
         <div className="p-12 flex-1 bg-black/40">
-          <h2 className="text-2xl font-semibold text-white mb-8">Login</h2>
+          <h2 className="text-2xl font-semibold text-white mb-8">
+            Login
+          </h2>
           
           <div className="space-y-4 mb-6">
             <div>
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
               />
             </div>
             <div>
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
               />
             </div>
-            <button className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition">
+            <button className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors">
               Login
             </button>
           </div>
@@ -68,22 +74,22 @@ export default function Login() {
           <div className="space-y-3">
             <button
               onClick={() => signInWithProvider('github')}
-              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
+              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
             >
               <Github size={20} />
-              GitHub
+              Continue with GitHub
             </button>
             
             <button
               onClick={() => signInWithProvider('discord')}
-              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
+              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
             >
               <DiscordIcon />
-              Discord
+              Continue with Discord
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

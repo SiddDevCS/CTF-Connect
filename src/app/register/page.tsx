@@ -4,8 +4,10 @@ import { useAuth } from '@/providers/AuthProvider';
 import { Github } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Check, X } from 'lucide-react';
 
-// Custom Discord icon component
+
 const DiscordIcon = () => (
   <svg
     width="20"
@@ -20,9 +22,55 @@ const DiscordIcon = () => (
 
 export default function Register() {
   const { signInWithProvider } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const passwordRequirements = [
+    {
+      text: 'At least 8 characters long',
+      test: (pass: string) => pass.length >= 8
+    },
+    {
+      text: 'Contains an uppercase letter',
+      test: (pass: string) => /[A-Z]/.test(pass)
+    },
+    {
+      text: 'Contains a lowercase letter',
+      test: (pass: string) => /[a-z]/.test(pass)
+    },
+    {
+      text: 'Contains a number',
+      test: (pass: string) => /[0-9]/.test(pass)
+    },
+    {
+      text: 'Contains a special character (!@#$%^&*)',
+      test: (pass: string) => /[!@#$%^&*]/.test(pass)
+    }
+  ];
+
+  const validatePassword = (password: string) => {
+    return passwordRequirements
+      .filter(req => !req.test(password))
+      .map(req => req.text);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setFormData(prev => ({ ...prev, password: newPassword }));
+    setErrors(validatePassword(newPassword));
+  };
 
   return (
-    <div className="min-h-screen bg-dark-navy flex items-center justify-center p-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-dark-navy flex items-center justify-center p-4"
+    >
       <div className="bg-black/20 rounded-2xl overflow-hidden w-full max-w-4xl flex border border-[#0095FF]/30">
         {/* Left Side - Blue Section */}
         <div className="bg-[#0095FF] p-12 flex-1 flex flex-col justify-center">
@@ -36,31 +84,90 @@ export default function Register() {
 
         {/* Right Side - Register Section */}
         <div className="p-12 flex-1 bg-black/40">
-          <h2 className="text-2xl font-semibold text-white mb-8">Register</h2>
+          <h2 className="text-2xl font-semibold text-white mb-8">
+            Register
+          </h2>
           
           <div className="space-y-4 mb-6">
             <div>
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
               />
             </div>
             <div>
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+                value={formData.password}
+                onChange={handlePasswordChange}
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
               />
+              {formData.password && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-3 p-3 bg-black/40 rounded-lg border border-[#0095FF]/20"
+                >
+                  <h3 className="text-sm font-medium text-white mb-2">Password Requirements:</h3>
+                  <div className="space-y-2">
+                    {passwordRequirements.map((req, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        {req.test(formData.password) ? (
+                          <Check className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <X className="w-4 h-4 text-red-500" />
+                        )}
+                        <span className={`text-sm ${
+                          req.test(formData.password) 
+                            ? 'text-green-500' 
+                            : 'text-gray-400'
+                        }`}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
             <div>
               <input
                 type="password"
                 placeholder="Confirm Password"
-                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF]"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                className="w-full px-4 py-3 bg-black/30 rounded-lg border border-[#0095FF]/30 text-white placeholder-gray-400 focus:outline-none focus:border-[#0095FF] transition-colors"
               />
+              {formData.confirmPassword && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-2 flex items-center gap-2"
+                >
+                  {formData.password === formData.confirmPassword ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className="text-sm text-green-500">Passwords match</span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-red-500">Passwords do not match</span>
+                    </>
+                  )}
+                </motion.div>
+              )}
             </div>
-            <button className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition">
+            <button
+              className="w-full bg-[#0095FF] text-white py-3 rounded-lg font-medium hover:bg-[#0095FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={errors.length > 0 || !formData.password || formData.password !== formData.confirmPassword}
+            >
               Create Account
             </button>
           </div>
@@ -75,7 +182,7 @@ export default function Register() {
           <div className="space-y-3">
             <button
               onClick={() => signInWithProvider('github')}
-              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
+              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
             >
               <Github size={20} />
               Continue with GitHub
@@ -83,7 +190,7 @@ export default function Register() {
             
             <button
               onClick={() => signInWithProvider('discord')}
-              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-black/40 transition border border-[#0095FF]/30"
+              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
             >
               <DiscordIcon />
               Continue with Discord
@@ -91,6 +198,6 @@ export default function Register() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

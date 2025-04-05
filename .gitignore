@@ -3,3 +3,17 @@ node_modules/
 dist/
 build/
 .next/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+*.tsbuildinfo
+*.tgz
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.lz
+*.tar.lzma
