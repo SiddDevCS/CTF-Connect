@@ -30,6 +30,15 @@ export default function Login() {
   const [loginStatus, setLoginStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleGitHubSignIn = async () => {
+    try {
+      await signInWithProvider('github');
+    } catch (error) {
+      setLoginStatus('Failed to connect with GitHub. Please try again.');
+      console.error('GitHub sign-in error:', error);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -144,13 +153,13 @@ export default function Login() {
           </p>
 
           <div className="space-y-3">
-            <button
-              onClick={() => signInWithProvider('github')}
-              className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
-            >
-              <Github size={20} />
-              Continue with GitHub
-            </button>
+          <button
+            onClick={handleGitHubSignIn}
+            className="w-full flex items-center justify-center gap-3 bg-black/30 text-white p-3 rounded-lg hover:bg-[#0095FF]/20 transition-colors border border-[#0095FF]/30"
+          >
+            <Github size={20} />
+            Continue with GitHub
+          </button>
             
             <button
               onClick={() => signInWithProvider('discord')}

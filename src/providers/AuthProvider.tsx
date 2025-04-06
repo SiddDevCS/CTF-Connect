@@ -15,26 +15,47 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    getUser()
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setUser(session?.user ?? null);
+        setLoading(false);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+        if (event === 'SIGNED_IN') {
+          // Check if profile exists
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session?.user?.id)
+            .single();
 
-    return () => subscription.unsubscribe()
-  }, [])
+          if (!profile) {
+            router.push('/onboarding');
+          } else {
+            router.push('/dashboard');
+          }
+        } else if (event === 'SIGNED_OUT') {
+          router.push('/login');
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const signInWithProvider = async (provider: 'discord' | 'github') => {
     try {
@@ -43,19 +64,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
-            access_type: 'offline',
             prompt: 'consent',
+            access_type: 'offline',
+            scope: provider === 'github' ? 'read:user user:email' : 'identify email',
           },
-          scopes: provider === 'github' ? 'read:user user:email' : 'identify email',
-        }
+        },
       });
-      
-      if (error) {
-        console.error('Auth error:', error);
-        return;
-      }
+
+      if (error) throw error;
+      if (!data.url) throw new Error('No OAuth URL returned');
+
+      // Redirect to OAuth provider
+      window.location.href = data.url;
     } catch (error) {
       console.error('Sign in error:', error);
+      throw error;
     }
   };
 

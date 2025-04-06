@@ -18,14 +18,14 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchUsers = async () => {
       const { data: usersData } = await supabase
-        .from('users')
+        .from('profiles')  // Changed from 'users' to 'profiles'
         .select('*');
       
       const { data: connectionsData } = await supabase
         .from('connections')
         .select('*')
         .or(`user_id.eq.${user?.id},connected_user_id.eq.${user?.id}`);
-
+  
       if (usersData) setUsers(usersData);
       if (connectionsData) {
         setConnections(new Set(connectionsData.map(c => 

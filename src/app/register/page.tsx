@@ -79,40 +79,31 @@ export default function Register() {
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
-
+  
       if (signUpError) {
         setRegistrationStatus(`Registration failed: ${signUpError.message}`);
         console.error('Registration error:', signUpError);
         return;
       }
-
+  
       if (data?.user) {
-        try {
-          // Create user profile in users table
-          const { error: profileError } = await supabase
-            .from('users')
-            .insert({
-              id: data.user.id,
-              username: formData.email.split('@')[0],
-              specialization: [],
-              experience_level: 'Beginner',
-              created_at: new Date().toISOString()
-            });
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-            setRegistrationStatus('Account created but profile setup failed. Please contact support.');
-            return;
-          }
-
-          setRegistrationStatus('Registration successful! Please check your email to verify your account.');
-          setTimeout(() => {
-            router.push('/login');
-          }, 3000);
-        } catch (profileError) {
-          console.error('Profile creation error:', profileError);
-          setRegistrationStatus('Account created but profile setup failed. Please contact support.');
+        // Instead of creating a profile, just check if it exists
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+  
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "not found" error
+          console.error('Profile check error:', profileError);
+          setRegistrationStatus('Account created but there was an issue. Please try logging in.');
+          return;
         }
+  
+        setRegistrationStatus('Registration successful! Please check your email to verify your account.');
+        setTimeout(() => {
+          router.push('/verification?email=' + encodeURIComponent(formData.email));
+        }, 3000);
       }
     } catch (error) {
       console.error('Unexpected error:', error);

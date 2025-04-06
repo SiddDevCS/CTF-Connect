@@ -30,9 +30,9 @@ export default function Onboarding() {
     e.preventDefault();
     
     if (!user) return;
-
+  
     const { error } = await supabase
-      .from('users')
+      .from('profiles')  // Changed from 'users' to 'profiles'
       .insert({
         id: user.id,
         username: formData.username,
@@ -40,9 +40,11 @@ export default function Onboarding() {
         experience_level: formData.experienceLevel,
         profile_image: user.user_metadata.avatar_url
       });
-
+  
     if (!error) {
       router.push('/dashboard');
+    } else {
+      console.error('Error creating profile:', error);
     }
   };
 
